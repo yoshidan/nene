@@ -1,0 +1,14 @@
+[package]
+name = "nene"
+version = "0.1.0"
+authors = ["yoshidan <naohiro.y@gmail.com>"]
+edition = "2021"
+repository = "https://github.com/yoshidan/nene"
+keywords = ["gcp","orm","google-cloud-rust"]
+license = "MIT"
+readme = "README.md"
+description = "Google Cloud Spanner ORM generator."
+
+[dependencies]
+handlebars = "4.1"
+google-cloud-spanner = "0.3"
