@@ -1,5 +1,5 @@
-use google_cloud_spanner::statement::{ToStruct, Types, Kinds, ToKind};
-use google_cloud_spanner::row::{TryFromStruct, Error, Struct};
+use google_cloud_spanner::row::{Error, Struct, TryFromStruct};
+use google_cloud_spanner::statement::{Kinds, ToKind, ToStruct, Types};
 
 pub struct Column {
     pub column_name: String,
@@ -7,13 +7,13 @@ pub struct Column {
     pub spanner_type: String,
     pub nullable: bool,
     pub primary_key: bool,
-    pub generated: bool
+    pub generated: bool,
 }
 
 pub struct Index {
     pub index_name: String,
     pub unique: bool,
-    pub columns: Vec<(String,i64)>,
+    pub columns: Vec<(String, i64)>,
 }
 
 pub struct Table {

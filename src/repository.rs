@@ -1,11 +1,11 @@
-use crate::model::{Table, Column, Index};
+use crate::model::{Column, Index, Table};
 use google_cloud_spanner::client::Client;
-use google_cloud_spanner::statement::Statement;
 use google_cloud_spanner::reader::AsyncIterator;
+use google_cloud_spanner::statement::Statement;
 use std::intrinsics::variant_count;
 
 pub struct TableRepository {
-    client: Client
+    client: Client,
 }
 
 impl TableRepository {
@@ -13,13 +13,16 @@ impl TableRepository {
         let stmt = Statement::new("SELECT TABLE_NAME, PARENT_TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '' ORDER BY TABLE_NAME");
         let mut itr = self.client.single().await?.query(stmt).await?;
 
-        let mut table_names : Vec<(String,String)>= vec![];
+        let mut table_names: Vec<(String, String)> = vec![];
         while let Some(row) = itr.next().await? {
-            table_names.push((row.column_by_name("TABLE_NAME")?, row.column_by_name("PARENT_TABLE_NAME")?));
+            table_names.push((
+                row.column_by_name("TABLE_NAME")?,
+                row.column_by_name("PARENT_TABLE_NAME")?,
+            ));
         }
 
-        let mut tables : Vec<Table>= vec![];
-        while let Some(table_name ) = table_names.pop() {
+        let mut tables: Vec<Table> = vec![];
+        while let Some(table_name) = table_names.pop() {
             let table = Table {
                 columns: self.read_columns(&table_name.0),
                 indexes: self.read_indexes(&table_name.0),
@@ -32,7 +35,8 @@ impl TableRepository {
     }
 
     async fn read_columns(&self, table_name: &str) -> anyhow::Result<Vec<Column>> {
-        let mut stmt = Statement::new("\
+        let mut stmt = Statement::new(
+            "\
             SELECT \
                 c.COLUMN_NAME, c.ORDINAL_POSITION, c.IS_NULLABLE, c.SPANNER_TYPE, \
                 EXISTS ( \
@@ -49,9 +53,10 @@ impl TableRepository {
             AND \
                 c.TABLE_NAME = @table \
             ORDER BY \
-                c.ORDINAL_POSITION");
-        stmt.add_param("table",&table_name.0);
-        let mut columns: Vec<Column>= vec![];
+                c.ORDINAL_POSITION",
+        );
+        stmt.add_param("table", &table_name.0);
+        let mut columns: Vec<Column> = vec![];
         let mut itr = self.client.single().await?.query(stmt).await?;
         while let Some(row) = itr.next().await? {
             let column = Column {
@@ -68,7 +73,8 @@ impl TableRepository {
     }
 
     async fn read_indexes(&self, table_name: &str) -> anyhow::Result<Vec<Index>> {
-        let mut stmt = Statement::new("\
+        let mut stmt = Statement::new(
+            "\
             SELECT \
                 INDEX_NAME, IS_UNIQUE  \
 		    FROM  \
@@ -81,17 +87,22 @@ impl TableRepository {
                 TABLE_NAME = @table \
             AND \
                 SPANNER_IS_MANAGED = FALSE\
-        ");
-        stmt.add_param("table",&table_name.0);
-        let mut index_names: Vec<(String,bool)>= vec![];
+        ",
+        );
+        stmt.add_param("table", &table_name.0);
+        let mut index_names: Vec<(String, bool)> = vec![];
         let mut itr = self.client.single().await?.query(stmt).await?;
         while let Some(row) = itr.next().await? {
-            index_names.push((row.column_by_name("INDEX_NAME")? , row.column_by_name("IS_UNIQUE")?))
+            index_names.push((
+                row.column_by_name("INDEX_NAME")?,
+                row.column_by_name("IS_UNIQUE")?,
+            ))
         }
 
-        let mut indexes : Vec<Index>= vec![];
-        while let Some(index_name ) = index_names.pop() {
-            let mut stmt = Statement::new("\
+        let mut indexes: Vec<Index> = vec![];
+        while let Some(index_name) = index_names.pop() {
+            let mut stmt = Statement::new(
+                "\
                 SELECT \
                     ORDINAL_POSITION, COLUMN_NAME \
                 FROM \
@@ -101,7 +112,8 @@ impl TableRepository {
                 AND \
                     INDEX_NAME = @index AND TABLE_NAME = @table \
                 ORDER BY ORDINAL_POSITION
-            ");
+            ",
+            );
             stmt.add_param("table", &table_name);
             stmt.add_param("index", &index_name.0);
 
@@ -112,7 +124,10 @@ impl TableRepository {
             };
             let mut itr = self.client.single().await?.query(stmt).await?;
             while let Some(row) = itr.next().await? {
-                let column = (row.column_by_name::<String>("COLUMN_NAME")?, row.column_by_name::<i64>("ORDINAL_POSITION")?);
+                let column = (
+                    row.column_by_name::<String>("COLUMN_NAME")?,
+                    row.column_by_name::<i64>("ORDINAL_POSITION")?,
+                );
                 index.columns.push(column);
             }
             indexes.push(index);
