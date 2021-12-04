@@ -12,3 +12,4 @@ description = "Google Cloud Spanner ORM generator."
 [dependencies]
 handlebars = "4.1"
 google-cloud-spanner = "0.3"
+anyhow = "1.0"
