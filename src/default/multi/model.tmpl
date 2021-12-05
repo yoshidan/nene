@@ -2,7 +2,8 @@ use google_cloud_spanner::row::{Error as RowError, Struct, TryFromStruct};
 use google_cloud_spanner::statement::{Kinds, ToKind, ToStruct, Types};
 use google_cloud_spanner::mutation::{insert, update, replace, insert_or_update, delete};
 use google_cloud_spanner::value::CommitTimestamp;
-use google_cloud_googleapis::spanner::v1::{KeySet, Mutation};
+use google_cloud_spanner::key::Key;
+use google_cloud_googleapis::spanner::v1::Mutation;
 
 pub struct {{{ table_name }}} {
     {{ #each columns }}
@@ -27,6 +28,10 @@ impl {{{ table_name }}} {
         insert_or_update_struct(&self)
     }
 
+    pub fn delete(&self, ) -> Mutation {
+        delete(&self, {{ #if composite_key }}Key::composite({{ #each primary_keys }}{{#if (gt @index 0)}},{{/if}}{{{ this.snake_column_name }}}{{ /each }}){{ else }}Key::key({{ #each primary_keys }}{{{ this.snake_column_name }}}{{ /each }}){{ /if }})
+    }
+
 }
 
 impl ToStruct for {{{ table_name }}} {
@@ -48,7 +53,7 @@ impl ToStruct for {{{ table_name }}} {
             {{ #if this.allow_commit_timestamp }}
             ("{{{ this.column_name }}}", CommitTimestamp::get_type()),
             {{ else }}
-            ("{{{ this.column_name }}}", {{{ this.rust_type }}} ::get_type()),
+            ("{{{ this.column_name }}}", {{{ this.rust_type }}}::get_type()),
             {{/if}}
          {{ /each }}
         ]
@@ -59,7 +64,7 @@ impl TryFromStruct for {{{ table_name }}} {
     fn try_from(s: Struct<'_>) -> Result<Self, RowError> {
         Ok({{{ table_name }}} {
          {{ #each columns }}
-            {{{ this.snake_column_name }}}: s.column_by_name({{{ this.column_name }}})?,
+            {{{ this.snake_column_name }}}: s.column_by_name("{{{ this.column_name }}}")?,
          {{ /each }}
         })
     }

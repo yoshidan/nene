@@ -3,7 +3,7 @@ use google_cloud_spanner::statement::{Kinds, ToKind, ToStruct, Types};
 use serde::{Serialize,Deserialize};
 use convert_case::{Casing, Case};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Column {
     pub column_name: String,
     pub snake_column_name: String,
@@ -35,7 +35,7 @@ impl Column {
         if spanner_type == "BOOL" {
             return "bool"
         }else if spanner_type == "DATE" {
-            return "chrono::NativeDate"
+            return "chrono::NaiveDate"
         }else if spanner_type == "TIMESTAMP" {
             return "chrono::DateTime<chrono::Utc>"
         }else if spanner_type == "FLOAT64" {
@@ -65,19 +65,28 @@ pub struct Table {
     pub columns: Vec<Column>,
     pub indexes: Vec<Index>,
     pub snake_table_name: String,
+    pub primary_keys: Vec<Column>,
+    pub composite_key: bool,
 }
 
 
 impl Table {
     pub fn new(table_name: String, parent_table_name: Option<String>, columns: Vec<Column>, indexes: Vec<Index>) ->Self {
+        let mut primary_keys = vec![];
+        for c in columns.iter() {
+            if c.primary_key {
+                primary_keys.push(c.clone())
+            }
+        }
+
         Self {
             snake_table_name: table_name.to_case(Case::Snake),
             table_name,
             parent_table_name,
             columns,
-            indexes
+            indexes,
+            composite_key: primary_keys.len() > 1,
+            primary_keys,
         }
     }
-
-
 }
