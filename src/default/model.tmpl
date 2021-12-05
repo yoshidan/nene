@@ -1,5 +1,0 @@
-pub struct {{ table_name }} {
-    {{ #each columns }}
-        pub {{ this.column_name }}: {{ #if this.nullable }}Option<{{ /if }}{{ this.spanner_type }}{{ #if this.nullable }}Option>{{ /if }}
-    {{ /each}}
-}

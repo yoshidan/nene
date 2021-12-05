@@ -14,8 +14,6 @@ async fn main() -> anyhow::Result<()>{
     let repository = TableRepository::new(client);
     let generator = TableGenerator::new(repository);
     generator.generate(Config {
-        file_prefix: "".to_string(),
-        file_suffix: "".to_string(),
         output_dir: "./gen".to_string(),
         input_dir: "./src/default".to_string()
     }).await

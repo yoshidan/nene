@@ -1,0 +1,5 @@
+pub struct {{{ table_name }}} {
+    {{ #each columns }}
+    pub {{{ this.snake_column_name }}}: {{ #if this.nullable }}Option<{{ /if }}{{{ this.rust_type }}}{{ #if this.nullable }}>{{ /if }},
+    {{ /each}}
+}

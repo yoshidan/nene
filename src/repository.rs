@@ -29,12 +29,14 @@ impl TableRepository {
 
         let mut tables: Vec<Table> = vec![];
         while let Some(table_name) = table_names.pop() {
-            let table = Table {
-                columns: self.read_columns(&table_name.0).await?,
-                indexes: self.read_indexes(&table_name.0).await?,
-                table_name: table_name.0,
-                parent_table_name: table_name.1,
-            };
+            let columns = self.read_columns(&table_name.0).await?;
+            let indexes = self.read_indexes(&table_name.0).await?;
+            let table = Table::new(
+                table_name.0,
+                table_name.1,
+                columns,
+                indexes
+            );
             tables.push(table)
         }
         Ok(tables)
@@ -73,15 +75,15 @@ impl TableRepository {
         let mut tx = self.client.single().await?;
         let mut itr = tx.query(stmt).await?;
         while let Some(row) = itr.next().await? {
-            let column = Column {
-                column_name: row.column_by_name("COLUMN_NAME")?,
-                ordinal_position: row.column_by_name("ORDINAL_POSITION")?,
-                spanner_type: row.column_by_name("SPANNER_TYPE")?,
-                nullable: row.column_by_name("IS_NULLABLE")?,
-                primary_key: row.column_by_name("IS_PRIMARY_KEY")?,
-                generated: row.column_by_name("IS_GENERATED")?,
-                allow_commit_timestamp: row.column_by_name("ALLOW_COMMIT_TIMESTAMP")?
-            };
+            let column = Column::new(
+                row.column_by_name("COLUMN_NAME")?,
+                row.column_by_name("ORDINAL_POSITION")?,
+                row.column_by_name("SPANNER_TYPE")?,
+                row.column_by_name("IS_NULLABLE")?,
+                row.column_by_name("IS_PRIMARY_KEY")?,
+                row.column_by_name("IS_GENERATED")?,
+                row.column_by_name("ALLOW_COMMIT_TIMESTAMP")?
+            );
             columns.push(column)
         }
         Ok(columns)
