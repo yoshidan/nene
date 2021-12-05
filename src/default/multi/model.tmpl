@@ -1,5 +1,66 @@
+use google_cloud_spanner::row::{Error as RowError, Struct, TryFromStruct};
+use google_cloud_spanner::statement::{Kinds, ToKind, ToStruct, Types};
+use google_cloud_spanner::mutation::{insert, update, replace, insert_or_update, delete};
+use google_cloud_spanner::value::CommitTimestamp;
+use google_cloud_googleapis::spanner::v1::{KeySet, Mutation};
+
 pub struct {{{ table_name }}} {
     {{ #each columns }}
     pub {{{ this.snake_column_name }}}: {{ #if this.nullable }}Option<{{ /if }}{{{ this.rust_type }}}{{ #if this.nullable }}>{{ /if }},
-    {{ /each}}
+    {{ /each }}
+}
+
+impl {{{ table_name }}} {
+    pub fn insert(&self) -> Mutation {
+        insert_struct(&self)
+    }
+
+    pub fn update(&self) -> Mutation {
+        update_struct(&self)
+    }
+
+    pub fn replace(&self) -> Mutation {
+        replace_struct(&self)
+    }
+
+    pub fn insert_or_update(&self) -> Mutation {
+        insert_or_update_struct(&self)
+    }
+
+}
+
+impl ToStruct for {{{ table_name }}} {
+    fn to_kinds(&self) -> Kinds {
+        vec![
+         {{ #each columns }}
+            {{#if this.allow_commit_timestamp}}
+            ("{{{ this.column_name }}}", CommitTimestamp::new().to_kind()),
+            {{else}}
+            ("{{{ this.column_name }}}", self.{{{ this.snake_column_name }}}.to_kind()),
+            {{/if}}
+         {{ /each }}
+        ]
+    }
+
+    fn get_types() -> Types {
+        vec![
+         {{ #each columns }}
+            {{ #if this.allow_commit_timestamp }}
+            ("{{{ this.column_name }}}", CommitTimestamp::get_type()),
+            {{ else }}
+            ("{{{ this.column_name }}}", {{{ this.rust_type }}} ::get_type()),
+            {{/if}}
+         {{ /each }}
+        ]
+    }
+}
+
+impl TryFromStruct for {{{ table_name }}} {
+    fn try_from(s: Struct<'_>) -> Result<Self, RowError> {
+        Ok({{{ table_name }}} {
+         {{ #each columns }}
+            {{{ this.snake_column_name }}}: s.column_by_name({{{ this.column_name }}})?,
+         {{ /each }}
+        })
+    }
 }
