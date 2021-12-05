@@ -2,18 +2,24 @@ use crate::model::{Column, Index, Table};
 use google_cloud_spanner::client::Client;
 use google_cloud_spanner::reader::AsyncIterator;
 use google_cloud_spanner::statement::Statement;
-use std::intrinsics::variant_count;
 
 pub struct TableRepository {
     client: Client,
 }
 
 impl TableRepository {
+    pub fn new(client:Client) -> Self {
+        Self {
+            client,
+        }
+    }
+
     pub async fn read_all(&self) -> anyhow::Result<Vec<Table>> {
         let stmt = Statement::new("SELECT TABLE_NAME, PARENT_TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '' ORDER BY TABLE_NAME");
-        let mut itr = self.client.single().await?.query(stmt).await?;
+        let mut tx = self.client.single().await?;
+        let mut itr = tx.query(stmt).await?;
 
-        let mut table_names: Vec<(String, String)> = vec![];
+        let mut table_names: Vec<(String, Option<String>)> = vec![];
         while let Some(row) = itr.next().await? {
             table_names.push((
                 row.column_by_name("TABLE_NAME")?,
@@ -24,40 +30,48 @@ impl TableRepository {
         let mut tables: Vec<Table> = vec![];
         while let Some(table_name) = table_names.pop() {
             let table = Table {
-                columns: self.read_columns(&table_name.0),
-                indexes: self.read_indexes(&table_name.0),
+                columns: self.read_columns(&table_name.0).await?,
+                indexes: self.read_indexes(&table_name.0).await?,
                 table_name: table_name.0,
                 parent_table_name: table_name.1,
             };
             tables.push(table)
         }
-        Ok(table)
+        Ok(tables)
     }
 
     async fn read_columns(&self, table_name: &str) -> anyhow::Result<Vec<Column>> {
         let mut stmt = Statement::new(
-            "\
-            SELECT \
-                c.COLUMN_NAME, c.ORDINAL_POSITION, c.IS_NULLABLE, c.SPANNER_TYPE, \
-                EXISTS ( \
-                    SELECT 1 FROM INFORMATION_SCHEMA.INDEX_COLUMNS ic \
-                    WHERE ic.TABLE_SCHEMA = '' and ic.TABLE_NAME = c.TABLE_NAME \
-                    AND ic.COLUMN_NAME = c.COLUMN_NAME \
-                    AND ic.INDEX_NAME = 'PRIMARY_KEY' \
-                ) IS_PRIMARY_KEY, \
-                IS_GENERATED = 'ALWAYS' AS IS_GENERATED \
-            FROM \
-                INFORMATION_SCHEMA.COLUMNS c \
-            WHERE \
-                c.TABLE_SCHEMA = '' \
-            AND \
-                c.TABLE_NAME = @table \
+            "
+            SELECT
+                c.COLUMN_NAME, c.ORDINAL_POSITION, c.IS_NULLABLE = 'YES' AS IS_NULLABLE, c.SPANNER_TYPE,
+                EXISTS (
+                    SELECT 1 FROM INFORMATION_SCHEMA.COLUMN_OPTIONS oc
+                    WHERE oc.OPTION_NAME = 'allow_commit_timestamp'
+                    AND oc.TABLE_NAME = c.TABLE_NAME
+                    AND oc.COLUMN_NAME = c.COLUMN_NAME
+                ) ALLOW_COMMIT_TIMESTAMP,
+                EXISTS (
+                    SELECT 1 FROM INFORMATION_SCHEMA.INDEX_COLUMNS ic
+                    WHERE ic.TABLE_SCHEMA = ''
+                    AND ic.TABLE_NAME = c.TABLE_NAME
+                    AND ic.COLUMN_NAME = c.COLUMN_NAME
+                    AND ic.INDEX_NAME = 'PRIMARY_KEY'
+                ) IS_PRIMARY_KEY,
+                IS_GENERATED = 'ALWAYS' AS IS_GENERATED
+            FROM
+                INFORMATION_SCHEMA.COLUMNS c
+            WHERE
+                c.TABLE_SCHEMA = ''
+            AND
+                c.TABLE_NAME = @table
             ORDER BY \
                 c.ORDINAL_POSITION",
         );
-        stmt.add_param("table", &table_name.0);
+        stmt.add_param("table", &table_name);
         let mut columns: Vec<Column> = vec![];
-        let mut itr = self.client.single().await?.query(stmt).await?;
+        let mut tx = self.client.single().await?;
+        let mut itr = tx.query(stmt).await?;
         while let Some(row) = itr.next().await? {
             let column = Column {
                 column_name: row.column_by_name("COLUMN_NAME")?,
@@ -66,6 +80,7 @@ impl TableRepository {
                 nullable: row.column_by_name("IS_NULLABLE")?,
                 primary_key: row.column_by_name("IS_PRIMARY_KEY")?,
                 generated: row.column_by_name("IS_GENERATED")?,
+                allow_commit_timestamp: row.column_by_name("ALLOW_COMMIT_TIMESTAMP")?
             };
             columns.push(column)
         }
@@ -89,9 +104,10 @@ impl TableRepository {
                 SPANNER_IS_MANAGED = FALSE\
         ",
         );
-        stmt.add_param("table", &table_name.0);
+        stmt.add_param("table", &table_name);
         let mut index_names: Vec<(String, bool)> = vec![];
-        let mut itr = self.client.single().await?.query(stmt).await?;
+        let mut tx = self.client.single().await?;
+        let mut itr = tx.query(stmt).await?;
         while let Some(row) = itr.next().await? {
             index_names.push((
                 row.column_by_name("INDEX_NAME")?,
@@ -122,7 +138,8 @@ impl TableRepository {
                 unique: index_name.1,
                 columns: vec![],
             };
-            let mut itr = self.client.single().await?.query(stmt).await?;
+            let mut tx = self.client.single().await?;
+            let mut itr = tx.query(stmt).await?;
             while let Some(row) = itr.next().await? {
                 let column = (
                     row.column_by_name::<String>("COLUMN_NAME")?,

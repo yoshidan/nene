@@ -5,12 +5,15 @@ use std::alloc::handle_alloc_error;
 use std::fs::File;
 use std::io::Write;
 use std::{fs, io};
+use anyhow::Context;
+use std::collections::HashMap;
+use convert_case::{Case, Casing};
 
 pub struct Config {
-    file_prefix: String,
-    file_suffix: String,
-    output_dir: String,
-    input_dir: String,
+    pub file_prefix: String,
+    pub file_suffix: String,
+    pub output_dir: String,
+    pub input_dir: String,
 }
 
 pub struct TableGenerator {
@@ -22,27 +25,27 @@ impl TableGenerator {
         Self { repository }
     }
 
-    pub fn generate(&self, config: Config) -> anyhow::Result<()> {
-        let tables = self.repository.read_all().await?;
+    pub async fn generate(&self, config: Config) -> anyhow::Result<()> {
 
-        let mut templates = fs::read_dir(".")?
+        let mut templates = fs::read_dir(config.input_dir)?
             .map(|res| res.map(|e| e.path()))
             .collect::<Result<Vec<_>, io::Error>>()?;
         let mut handlebars = Handlebars::new();
 
-        templates.iter().for_each(|e| {
+        let tables = self.repository.read_all().await?;
+        for e in templates.iter() {
             let template_string = fs::read_to_string(e)?;
-            tables.iter().for_each(|table| {
-                let rendered = handlebars.render_template::<Table>(&template_string, table)?;
+            for table in tables.iter() {
+                let rendered = handlebars.render_template::<Table>(&template_string, &table)?;
                 let file_path = format!(
                     "{}/{}{}{}.rs",
-                    config.output_dir, config.file_prefix, table.table_name, config.file_suffix
+                    config.output_dir, config.file_prefix,  table.table_name.to_case(Case::Snake), config.file_suffix
                 );
                 let mut file = File::create(file_path)?;
                 write!(file, "{}", rendered)?;
                 file.flush()?;
-            });
-        });
+            }
+        }
         Ok(())
     }
 }

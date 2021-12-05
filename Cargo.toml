@@ -10,6 +10,12 @@ readme = "README.md"
 description = "Google Cloud Spanner ORM generator."
 
 [dependencies]
+convert_case = "0.4"
+log = "0.4"
+env_logger = "0.9"
 handlebars = "4.1"
 google-cloud-spanner = "0.3"
 anyhow = "1.0"
+serde = "1.0"
+serde_json = "1.0"
+tokio = "1.14"
