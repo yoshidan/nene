@@ -8,10 +8,8 @@ pub struct TableRepository {
 }
 
 impl TableRepository {
-    pub fn new(client:Client) -> Self {
-        Self {
-            client,
-        }
+    pub fn new(client: Client) -> Self {
+        Self { client }
     }
 
     pub async fn read_all(&self) -> anyhow::Result<Vec<Table>> {
@@ -31,12 +29,7 @@ impl TableRepository {
         while let Some(table_name) = table_names.pop() {
             let columns = self.read_columns(&table_name.0).await?;
             let indexes = self.read_indexes(&table_name.0).await?;
-            let table = Table::new(
-                table_name.0,
-                table_name.1,
-                columns,
-                indexes
-            );
+            let table = Table::new(table_name.0, table_name.1, columns, indexes);
             tables.push(table)
         }
         Ok(tables)
@@ -82,7 +75,7 @@ impl TableRepository {
                 row.column_by_name("IS_NULLABLE")?,
                 row.column_by_name("IS_PRIMARY_KEY")?,
                 row.column_by_name("IS_GENERATED")?,
-                row.column_by_name("ALLOW_COMMIT_TIMESTAMP")?
+                row.column_by_name("ALLOW_COMMIT_TIMESTAMP")?,
             );
             columns.push(column)
         }

@@ -1,7 +1,7 @@
-use handlebars::Handlebars;
-use handlebars::handlebars_helper;
-use convert_case::{Casing, Case};
 use crate::model::Column;
+use convert_case::{Case, Casing};
+use handlebars::handlebars_helper;
+use handlebars::Handlebars;
 
 fn rust_type_helper(spanner_type: String) -> String {
     let v = if spanner_type == "BOOL" {
@@ -29,11 +29,11 @@ fn rust_caller_type_helper(v: String) -> String {
 }
 
 fn snake_helper(v: String) -> String {
-    return v.to_case(Case::Snake)
+    return v.to_case(Case::Snake);
 }
 
 fn upper_snake_helper(v: String) -> String {
-    return v.to_case(Case::UpperSnake)
+    return v.to_case(Case::UpperSnake);
 }
 
 fn primary_keys(columns: Vec<Column>) -> Vec<Column> {
@@ -46,7 +46,7 @@ fn primary_keys(columns: Vec<Column>) -> Vec<Column> {
     return primary_keys;
 }
 
-fn composite(pk: Vec<Column>) -> bool{
+fn composite(pk: Vec<Column>) -> bool {
     return pk.len() > 1;
 }
 
