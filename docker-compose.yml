@@ -1,0 +1,11 @@
+version: "3.8"
+
+services:
+  nene:
+    command: ./nene -o /gen
+    volume:
+      /gen:./gen
+    environment:
+      RUST_LOG: info
+      SPANNER_EMULATOR_HOST: host.docker.internal:9010
+      SPANNER_DSN: projects/local-project/instances/test-instance/databases/local-database
