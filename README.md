@@ -8,22 +8,32 @@
 ## Installation
 
 ```
-[dependencies]
-nene = <version>
+docker pull ghcr.io/yoshidan/nene/nene:0.1.0
 ```
 
 ## Usage
 ```bash
-export SPANNER_EMULATOR_HOST: localhost:9010 # support spanner emulator
-export SPANNER_DSN=projects/<your_project>/instances/<your_instance>/databases/<your_database>
-cargo run -i <template_dir> -o <output_dir>
+services:
+  nene:
+    image: ghcr.io/yoshidan/nene/nene:0.1.0
+    command: -o /model #-i /template
+    volumes:
+      - ./model:/model
+    #  - ./template:/template
+    environment:
+      RUST_LOG: info
+      SPANNER_DSN: projects/local-project/instances/test-instance/databases/local-database
+      # if you don't use emulator use GOOGLE_APPLICATION_CREDENTIALS instead of SPANNER_EMULATOR_HOST
+      SPANNER_EMULATOR_HOST: host.docker.internal:9010 
 ```
 
-* template_dir 
+* -i
+  - template directory.
   - see template directory [structure](./src/default)
   - if not specified default template are used.
 
-* output_dir
+* -o
+  - output directory
   - default directory is `./gen`
 
 ### Generated file with default template
