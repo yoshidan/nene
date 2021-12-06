@@ -1,7 +1,7 @@
-use google_cloud_spanner::row::{Error, Struct, TryFromStruct};
-use google_cloud_spanner::statement::{Kinds, ToKind, ToStruct, Types};
+
+
 use serde::{Serialize,Deserialize};
-use convert_case::{Casing, Case};
+
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Column {
