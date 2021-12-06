@@ -8,6 +8,7 @@ use std::{fs, io};
 use anyhow::Context;
 use std::collections::HashMap;
 use convert_case::{Case, Casing};
+use crate::helper::register;
 
 pub struct Config {
     pub output_dir: String,
@@ -26,6 +27,7 @@ impl TableGenerator {
     pub async fn generate(&self, config: Config) -> anyhow::Result<()> {
 
         let mut handlebars = Handlebars::new();
+        register(&mut handlebars);
 
         let mut multi_templates = fs::read_dir(format!("{}/multi",config.input_dir))?
             .map(|res| res.map(|e| e.path()))
@@ -44,7 +46,7 @@ impl TableGenerator {
             for table in tables.iter() {
                 let rendered = handlebars.render_template::<Table>(&template_string, &table)?;
                 let file_path = format!(
-                    "{}/{}.rs", config.output_dir, file_name.replace("${table_name}", &table.snake_table_name)
+                    "{}/{}.rs", config.output_dir, file_name.replace("${table_name}", &table.table_name.to_case(Case::Snake))
                 );
                 let mut file = File::create(file_path)?;
                 write!(file, "{}", rendered)?;

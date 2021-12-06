@@ -1,37 +1,42 @@
-use google_cloud_spanner::row::{Error as RowError, Struct, TryFromStruct};
+use google_cloud_spanner::row::{Error as RowError, Struct, TryFromStruct, Row};
 use google_cloud_spanner::statement::{Kinds, ToKind, ToStruct, Types};
-use google_cloud_spanner::mutation::{insert, update, replace, insert_or_update, delete};
+use google_cloud_spanner::mutation::{insert_struct, update_struct, replace_struct, insert_or_update_struct, delete};
 use google_cloud_spanner::value::CommitTimestamp;
 use google_cloud_spanner::key::Key;
 use google_cloud_googleapis::spanner::v1::Mutation;
+use std::convert::TryFrom;
+
+const TABLE_NAME : &str = "{{{ table_name }}}";
+{{ #each columns }}
+const COLUMN_{{{ upper_snake this.column_name }}} : &str = "{{{ this.column_name }}}";
+{{ /each }}
 
 pub struct {{{ table_name }}} {
     {{ #each columns }}
-    pub {{{ this.snake_column_name }}}: {{ #if this.nullable }}Option<{{ /if }}{{{ this.rust_type }}}{{ #if this.nullable }}>{{ /if }},
+    pub {{{ snake this.column_name }}}: {{ #if this.nullable }}Option<{{ /if }}{{{ rust_type this.spanner_type }}}{{ #if this.nullable }}>{{ /if }},
     {{ /each }}
 }
 
 impl {{{ table_name }}} {
     pub fn insert(&self) -> Mutation {
-        insert_struct(&self)
+        insert_struct(TABLE_NAME, &self)
     }
 
     pub fn update(&self) -> Mutation {
-        update_struct(&self)
+        update_struct(TABLE_NAME, &self)
     }
 
     pub fn replace(&self) -> Mutation {
-        replace_struct(&self)
+        replace_struct(TABLE_NAME, &self)
     }
 
     pub fn insert_or_update(&self) -> Mutation {
-        insert_or_update_struct(&self)
+        insert_or_update_struct(TABLE_NAME, &self)
     }
 
-    pub fn delete(&self, ) -> Mutation {
-        delete(&self, {{ #if composite_key }}Key::composite({{ #each primary_keys }}{{#if (gt @index 0)}},{{/if}}{{{ this.snake_column_name }}}{{ /each }}){{ else }}Key::key({{ #each primary_keys }}{{{ this.snake_column_name }}}{{ /each }}){{ /if }})
+    pub fn delete(&self) -> Mutation {
+        delete(TABLE_NAME, {{ #if composite primary_keys }}Key::composite({{ #each primary_keys }}{{#if (gt @index 0)}},{{/if}}{{{ snake this.column_name }}}{{ /each }}){{ else }}Key::key({{ #each primary_keys }}{{{ snake this.column_name }}}{{ /each }}){{ /if }})
     }
-
 }
 
 impl ToStruct for {{{ table_name }}} {
@@ -39,9 +44,9 @@ impl ToStruct for {{{ table_name }}} {
         vec![
          {{ #each columns }}
             {{#if this.allow_commit_timestamp}}
-            ("{{{ this.column_name }}}", CommitTimestamp::new().to_kind()),
+            (COLUMN_{{{ upper_snake this.column_name }}}, CommitTimestamp::new().to_kind()),
             {{else}}
-            ("{{{ this.column_name }}}", self.{{{ this.snake_column_name }}}.to_kind()),
+            (COLUMN_{{{ upper_snake this.column_name }}}, self.{{{ snake this.column_name }}}.to_kind()),
             {{/if}}
          {{ /each }}
         ]
@@ -51,9 +56,9 @@ impl ToStruct for {{{ table_name }}} {
         vec![
          {{ #each columns }}
             {{ #if this.allow_commit_timestamp }}
-            ("{{{ this.column_name }}}", CommitTimestamp::get_type()),
+            (COLUMN_{{{ upper_snake this.column_name }}}, CommitTimestamp::get_type()),
             {{ else }}
-            ("{{{ this.column_name }}}", {{{ this.rust_type }}}::get_type()),
+            (COLUMN_{{{ upper_snake this.column_name }}}, {{{ rust_caller_type (rust_type this.spanner_type) }}}::get_type()),
             {{/if}}
          {{ /each }}
         ]
@@ -64,18 +69,18 @@ impl TryFromStruct for {{{ table_name }}} {
     fn try_from(s: Struct<'_>) -> Result<Self, RowError> {
         Ok({{{ table_name }}} {
          {{ #each columns }}
-            {{{ this.snake_column_name }}}: s.column_by_name("{{{ this.column_name }}}")?,
+            {{{ snake this.column_name }}}: s.column_by_name("{{{ this.column_name }}}")?,
          {{ /each }}
         })
     }
 }
 
 impl TryFrom<Row> for {{{ table_name }}} {
-    type Error = RowError
-    fn try_from(row: Row) -> Result<Self, Error> {
+    type Error = RowError;
+    fn try_from(row: Row) -> Result<Self, RowError> {
         Ok({{{ table_name }}} {
          {{ #each columns }}
-            {{{ this.snake_column_name }}}: s.column_by_name("{{{ this.column_name }}}")?,
+            {{{ snake this.column_name }}}: row.column_by_name("{{{ this.column_name }}}")?,
          {{ /each }}
         })
     }
