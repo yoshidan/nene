@@ -2,9 +2,11 @@ version: "3.8"
 
 services:
   nene:
-    command: ./nene -o /gen
-    volume:
-      /gen:./gen
+    build:
+      context: .
+    command: nene -o /gen
+    volumes:
+      - ./gen:/gen
     environment:
       RUST_LOG: info
       SPANNER_EMULATOR_HOST: host.docker.internal:9010

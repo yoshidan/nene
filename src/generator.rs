@@ -29,7 +29,7 @@ impl TableGenerator {
         let tables = self.repository.read_all().await?;
 
         self.generate_multi(&handlebars, &tables, DEFAULT_MODEL_TEMPLATE, "${table_name}", output_dir).await?;
-        self.generate_single(&handlebars, &tables, DEFAULT_MODEL_TEMPLATE, "mod", output_dir).await?;
+        self.generate_single(&handlebars, &tables, DEFAULT_MOD_TEMPLATE, "mod", output_dir).await?;
         Ok(())
     }
 

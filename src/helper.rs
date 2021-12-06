@@ -36,20 +36,6 @@ fn upper_snake_helper(v: String) -> String {
     return v.to_case(Case::UpperSnake);
 }
 
-fn primary_keys(columns: Vec<Column>) -> Vec<Column> {
-    let mut primary_keys = vec![];
-    for c in columns.iter() {
-        if c.primary_key {
-            primary_keys.push(c.clone())
-        }
-    }
-    return primary_keys;
-}
-
-fn composite(pk: Vec<Column>) -> bool {
-    return pk.len() > 1;
-}
-
 handlebars_helper!(rust_type: |v: String | rust_type_helper(v));
 handlebars_helper!(rust_caller_type: |v: String | rust_caller_type_helper(v));
 handlebars_helper!(snake: |v: String | snake_helper(v));

@@ -1,7 +1,7 @@
-
-
-
-use serde::{Deserialize, Serialize};
+use google_cloud_spanner::row::{Error, Struct, TryFromStruct};
+use google_cloud_spanner::statement::{Kinds, ToKind, ToStruct, Types};
+use serde::{Serialize,Deserialize};
+use convert_case::{Casing, Case};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Column {
@@ -15,15 +15,7 @@ pub struct Column {
 }
 
 impl Column {
-    pub fn new(
-        column_name: String,
-        ordinal_position: i64,
-        spanner_type: String,
-        nullable: bool,
-        primary_key: bool,
-        generated: bool,
-        allow_commit_timestamp: bool,
-    ) -> Self {
+    pub fn new(column_name: String, ordinal_position: i64, spanner_type: String, nullable: bool, primary_key: bool, generated: bool, allow_commit_timestamp: bool) ->Self {
         Self {
             column_name,
             ordinal_position,
@@ -34,6 +26,7 @@ impl Column {
             allow_commit_timestamp,
         }
     }
+
 }
 
 #[derive(Serialize, Deserialize)]
@@ -49,20 +42,26 @@ pub struct Table {
     pub parent_table_name: Option<String>,
     pub columns: Vec<Column>,
     pub indexes: Vec<Index>,
+    pub primary_keys: Vec<Column>,
+    pub composite_key: bool,
 }
 
 impl Table {
-    pub fn new(
-        table_name: String,
-        parent_table_name: Option<String>,
-        columns: Vec<Column>,
-        indexes: Vec<Index>,
-    ) -> Self {
+    pub fn new(table_name: String, parent_table_name: Option<String>, columns: Vec<Column>, indexes: Vec<Index>) ->Self {
+        let mut primary_keys = vec![];
+        for c in columns.iter() {
+            if c.primary_key {
+                primary_keys.push(c.clone())
+            }
+        }
+
         Self {
             table_name,
             parent_table_name,
             columns,
             indexes,
+            composite_key: primary_keys.len() > 1,
+            primary_keys,
         }
     }
 }
