@@ -7,10 +7,7 @@ use nene::repository::TableRepository;
 async fn main() -> anyhow::Result<()> {
     env_logger::init();
 
-    let database: &str = "projects/local-project/instances/test-instance/databases/local-database";
-
-    std::env::set_var("SPANNER_EMULATOR_HOST", "localhost:9010");
-    //let database = std::env::var("SPANNER_DSN");
+    let database = std::env::var("SPANNER_DSN");
     let matches = App::new("Spanner ORM Generator")
         .arg(
             Arg::with_name("input_dir")

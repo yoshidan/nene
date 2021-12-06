@@ -4,7 +4,7 @@ services:
   nene:
     build:
       context: .
-    command: nene -o /gen
+    command: -o /gen
     volumes:
       - ./gen:/gen
     environment:
