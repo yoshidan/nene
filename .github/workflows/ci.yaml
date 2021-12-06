@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  ci:
+    name: common
+    runs-on: ubuntu-latest
+    services:
+      spanner:
+        image: gcr.io/cloud-spanner-emulator/emulator
+        ports:
+          - 9020:9020
+          - 9010:9010
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+      - uses: actions-rs/cargo@v1
+        name: format check
+        with:
+          command: fmt
+          args: --all -- --check
+      - name: setup spanner
+        run: |
+          gcloud config configurations create emulator
+          gcloud config set auth/disable_credentials true
+          gcloud config set project local-project
+          gcloud config set api_endpoint_overrides/spanner http://localhost:9020/
+          gcloud spanner instances create test-instance --config=emulator-config --description="Test Instance" --nodes=1
+      - name: migration
+        uses: docker://mercari/wrench:1.0.4
+        with:
+          args: "create --directory testddl"
+        env:
+          SPANNER_PROJECT_ID: local-project
+          SPANNER_INSTANCE_ID: test-instance
+          SPANNER_DATABASE_ID: local-database
+          SPANNER_EMULATOR_HOST: 172.17.0.1:9010
+      - uses: actions-rs/cargo@v1
+        name: run
+        with:
+          command: run
+          args: --release --all-features --manifest-path Cargo.toml
+        env:
+          RUST_LOG: info
+          SPANNER_EMULATOR_HOST: localhost:9010
+          SPANNER_DSN: projects/local-project/instances/test-instance/databases/local-database
