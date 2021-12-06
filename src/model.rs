@@ -37,12 +37,19 @@ pub struct Index {
 }
 
 #[derive(Serialize, Deserialize)]
+pub struct PrimaryKey{
+    pub uppers: Vec<Column>,
+    pub column: Column,
+    pub last: bool
+}
+
+#[derive(Serialize, Deserialize)]
 pub struct Table {
     pub table_name: String,
     pub parent_table_name: Option<String>,
     pub columns: Vec<Column>,
     pub indexes: Vec<Index>,
-    pub primary_keys: Vec<Column>,
+    pub primary_keys: Vec<PrimaryKey>,
     pub composite_key: bool,
 }
 
@@ -54,6 +61,22 @@ impl Table {
                 primary_keys.push(c.clone())
             }
         }
+        let mut primary_keys_with_rest= vec![];
+        for c in primary_keys.iter() {
+            let mut uppers = Vec::with_capacity(primary_keys.len() - 1);
+            for r in primary_keys.iter() {
+                // include self
+                if c.ordinal_position >= r.ordinal_position {
+                    uppers.push(r.clone())
+                }
+            }
+            primary_keys_with_rest.push(PrimaryKey {
+                uppers: uppers,
+                column: c.clone(),
+                last: false
+            })
+        }
+        primary_keys_with_rest[primary_keys.len()-1].last = true;
 
         Self {
             table_name,
@@ -61,7 +84,7 @@ impl Table {
             columns,
             indexes,
             composite_key: primary_keys.len() > 1,
-            primary_keys,
+            primary_keys: primary_keys_with_rest,
         }
     }
 }
