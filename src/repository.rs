@@ -32,6 +32,7 @@ impl TableRepository {
             let table = Table::new(table_name.0, table_name.1, columns, indexes);
             tables.push(table)
         }
+        log::info!("{} tables found", tables.len());
         Ok(tables)
     }
 

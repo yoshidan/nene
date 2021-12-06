@@ -5,10 +5,9 @@ use nene::repository::TableRepository;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let database: &str = "projects/local-project/instances/test-instance/databases/local-database";
+    env_logger::init();
 
-    std::env::set_var("SPANNER_EMULATOR_HOST", "localhost:9010");
-    //let database = std::env::var("SPANNER_DSN");
+    let database = std::env::var("SPANNER_DSN");
     let matches = App::new("Spanner ORM Generator")
         .arg(
             Arg::with_name("input_dir")
@@ -33,8 +32,10 @@ async fn main() -> anyhow::Result<()> {
     let generator = TableGenerator::new(repository);
 
     if input.is_some() {
+        log::info!("generate from custom template output dir is {}", output);
         generator.generate(input.unwrap(), output).await
     }else {
+        log::info!("generate from default template output dir is {}", output);
         generator.generate_default(output).await
     }
 }

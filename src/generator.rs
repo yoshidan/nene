@@ -28,8 +28,8 @@ impl TableGenerator {
         register(&mut handlebars);
         let tables = self.repository.read_all().await?;
 
-        self.generate_multi(&handlebars, &tables, DEFAULT_MODEL_TEMPLATE, "${table_name}", output_dir).await;
-        self.generate_single(&handlebars, &tables, DEFAULT_MODEL_TEMPLATE, "mod", output_dir).await;
+        self.generate_multi(&handlebars, &tables, DEFAULT_MODEL_TEMPLATE, "${table_name}", output_dir).await?;
+        self.generate_single(&handlebars, &tables, DEFAULT_MODEL_TEMPLATE, "mod", output_dir).await?;
         Ok(())
     }
 
@@ -51,14 +51,14 @@ impl TableGenerator {
             let template_string = fs::read_to_string(e.clone())?;
             e.set_extension("");
             let file_name = e.file_name().unwrap().to_str().unwrap().to_string();
-            self.generate_multi(&handlebars, &tables, &template_string, &file_name, &output_dir).await?
+            self.generate_multi(&handlebars, &tables, &template_string, &file_name, &output_dir).await?;
         }
 
         for mut e in single_templates.into_iter() {
             let template_string = fs::read_to_string(e.clone())?;
             e.set_extension("");
             let file_name = e.file_name().unwrap().to_str().unwrap().to_string();
-            self.generate_single(&handlebars, &tables, &template_string, &file_name, &output_dir).await?
+            self.generate_single(&handlebars, &tables, &template_string, &file_name, &output_dir).await?;
         }
         Ok(())
     }
@@ -68,6 +68,7 @@ impl TableGenerator {
         let file_path = format!("{}/{}.rs", output_dir, file_name);
         let mut file = File::create(file_path)?;
         write!(file, "{}", rendered)?;
+        log::info!("{} are generated", file_path);
         Ok(file.flush()?)
     }
 
@@ -81,8 +82,9 @@ impl TableGenerator {
             );
             let mut file = File::create(file_path)?;
             write!(file, "{}", rendered)?;
+            log::info!("{} are generated", file_path);
             file.flush()?;
-        }
+        };
         Ok(())
     }
 }
