@@ -1,7 +1,4 @@
-
-
-use serde::{Serialize,Deserialize};
-
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Column {
@@ -15,7 +12,15 @@ pub struct Column {
 }
 
 impl Column {
-    pub fn new(column_name: String, ordinal_position: i64, spanner_type: String, nullable: bool, primary_key: bool, generated: bool, allow_commit_timestamp: bool) ->Self {
+    pub fn new(
+        column_name: String,
+        ordinal_position: i64,
+        spanner_type: String,
+        nullable: bool,
+        primary_key: bool,
+        generated: bool,
+        allow_commit_timestamp: bool,
+    ) -> Self {
         Self {
             column_name,
             ordinal_position,
@@ -26,7 +31,6 @@ impl Column {
             allow_commit_timestamp,
         }
     }
-
 }
 
 #[derive(Serialize, Deserialize)]
@@ -37,10 +41,10 @@ pub struct Index {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct PrimaryKey{
+pub struct PrimaryKey {
     pub uppers: Vec<Column>,
     pub column: Column,
-    pub last: bool
+    pub last: bool,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -54,14 +58,19 @@ pub struct Table {
 }
 
 impl Table {
-    pub fn new(table_name: String, parent_table_name: Option<String>, columns: Vec<Column>, indexes: Vec<Index>) ->Self {
+    pub fn new(
+        table_name: String,
+        parent_table_name: Option<String>,
+        columns: Vec<Column>,
+        indexes: Vec<Index>,
+    ) -> Self {
         let mut primary_keys = vec![];
         for c in columns.iter() {
             if c.primary_key {
                 primary_keys.push(c.clone())
             }
         }
-        let mut primary_keys_with_rest= vec![];
+        let mut primary_keys_with_rest = vec![];
         for c in primary_keys.iter() {
             let mut uppers = Vec::with_capacity(primary_keys.len() - 1);
             for r in primary_keys.iter() {
@@ -73,10 +82,10 @@ impl Table {
             primary_keys_with_rest.push(PrimaryKey {
                 uppers: uppers,
                 column: c.clone(),
-                last: false
+                last: false,
             })
         }
-        primary_keys_with_rest[primary_keys.len()-1].last = true;
+        primary_keys_with_rest[primary_keys.len() - 1].last = true;
 
         Self {
             table_name,

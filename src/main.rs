@@ -34,7 +34,7 @@ async fn main() -> anyhow::Result<()> {
     if input.is_some() {
         log::info!("generate from custom template output dir is {}", output);
         generator.generate(input.unwrap(), output).await
-    }else {
+    } else {
         log::info!("generate from default template output dir is {}", output);
         generator.generate_default(output).await
     }
