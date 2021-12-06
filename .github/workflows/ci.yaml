@@ -10,7 +10,7 @@ on:
 
 jobs:
   ci:
-    name: common
+    name: CI
     runs-on: ubuntu-latest
     services:
       spanner:
@@ -55,7 +55,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         name: run
         with:
-          command: run
+          command: run -o .
           args: --release --all-features --manifest-path Cargo.toml
         env:
           RUST_LOG: info
