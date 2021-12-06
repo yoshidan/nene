@@ -66,9 +66,9 @@ impl TableGenerator {
     async fn generate_single(&self, handlebars: &Handlebars<'_>, tables: &Vec<Table>, template_string: &str, file_name:&str, output_dir: &str) -> anyhow::Result<()> {
         let rendered = handlebars.render_template::<Vec<Table>>(template_string, tables)?;
         let file_path = format!("{}/{}.rs", output_dir, file_name);
+        log::info!("generate {}", file_path);
         let mut file = File::create(file_path)?;
         write!(file, "{}", rendered)?;
-        log::info!("{} are generated", file_path);
         Ok(file.flush()?)
     }
 
@@ -80,9 +80,9 @@ impl TableGenerator {
                 output_dir,
                 file_name.replace("${table_name}", &table.table_name.to_case(Case::Snake))
             );
+            log::info!("generate {}", file_path);
             let mut file = File::create(file_path)?;
             write!(file, "{}", rendered)?;
-            log::info!("{} are generated", file_path);
             file.flush()?;
         };
         Ok(())
