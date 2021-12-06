@@ -37,12 +37,14 @@ impl TableGenerator {
 
         let tables = self.repository.read_all().await?;
 
-        for e in multi_templates.iter() {
-            let template_string = fs::read_to_string(e)?;
+        for mut e in multi_templates.into_iter() {
+            let template_string = fs::read_to_string(e.clone())?;
+            e.set_extension("");
+            let file_name= e.file_name().unwrap().to_str().unwrap().to_string();
             for table in tables.iter() {
                 let rendered = handlebars.render_template::<Table>(&template_string, &table)?;
                 let file_path = format!(
-                    "{}/{}.rs", config.output_dir, table.snake_table_name
+                    "{}/{}.rs", config.output_dir, file_name.replace("${table_name}", &table.snake_table_name)
                 );
                 let mut file = File::create(file_path)?;
                 write!(file, "{}", rendered)?;

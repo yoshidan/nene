@@ -69,3 +69,15 @@ impl TryFromStruct for {{{ table_name }}} {
         })
     }
 }
+
+impl TryFrom<Row> for {{{ table_name }}} {
+    type Error = RowError
+    fn try_from(row: Row) -> Result<Self, Error> {
+        Ok({{{ table_name }}} {
+         {{ #each columns }}
+            {{{ this.snake_column_name }}}: s.column_by_name("{{{ this.column_name }}}")?,
+         {{ /each }}
+        })
+    }
+}
+
