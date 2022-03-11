@@ -12,7 +12,7 @@ fn rust_type_helper(spanner_type: String) -> String {
     } else if spanner_type == "FLOAT64" {
         "f64"
     } else if spanner_type == "NUMERIC" {
-        "rust_decimal::Decimal"
+        "google_cloud_spanner::value::SpannerNumeric"
     } else if spanner_type.starts_with("BYTES") {
         "Vec<u8>"
     } else if spanner_type == "INT64" {
