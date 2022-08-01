@@ -43,7 +43,7 @@ impl {{{ table_name }}} {
     }
 
     pub fn delete(&self) -> Mutation {
-        delete(TABLE_NAME, {{ #if composite_key }}Key::composite(&[{{ #each primary_keys }}{{#if (gt @index 0)}}, {{/if}}&self.{{{ snake this.column.column_name }}}{{ /each }}]){{ else }}Key::key({{ #each primary_keys }}&self.{{{ snake this.column.column_name }}}{{ /each }}){{ /if }})
+        delete(TABLE_NAME, {{ #if composite_key }}Key::composite(&[{{ #each primary_keys }}{{#if (gt @index 0)}}, {{/if}}&self.{{{ snake this.column.column_name }}}{{ /each }}]){{ else }}Key::new({{ #each primary_keys }}&self.{{{ snake this.column.column_name }}}{{ /each }}){{ /if }})
     }
     {{ #each primary_keys }}
 
