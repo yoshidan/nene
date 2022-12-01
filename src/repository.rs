@@ -5,11 +5,12 @@ use google_cloud_spanner::statement::Statement;
 
 pub struct TableRepository {
     client: Client,
+    json: bool,
 }
 
 impl TableRepository {
-    pub fn new(client: Client) -> Self {
-        Self { client }
+    pub fn new(client: Client, json: bool) -> Self {
+        Self { client, json }
     }
 
     pub async fn read_all(&self) -> anyhow::Result<Vec<Table>> {
@@ -29,7 +30,7 @@ impl TableRepository {
         while let Some(table_name) = table_names.pop() {
             let columns = self.read_columns(&table_name.0).await?;
             let indexes = self.read_indexes(&table_name.0).await?;
-            let table = Table::new(table_name.0, table_name.1, columns, indexes);
+            let table = Table::new(table_name.0, table_name.1, columns, indexes, self.json);
             tables.push(table)
         }
         log::info!("{} tables found", tables.len());

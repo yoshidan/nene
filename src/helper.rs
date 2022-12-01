@@ -34,7 +34,7 @@ fn rust_type_helper(spanner_type: String) -> String {
 }
 
 fn rust_arg_type_helper(v: String) -> String {
-    return v.replace("String", "&str");
+    return format!("&{}", v.replace("String", "str"));
 }
 
 fn rust_caller_type_helper(v: String) -> String {
