@@ -1,6 +1,6 @@
 [package]
 name = "nene"
-version = "0.3.0"
+version = "0.4.0"
 authors = ["yoshidan <naohiro.y@gmail.com>"]
 edition = "2021"
 repository = "https://github.com/yoshidan/nene"
@@ -14,7 +14,7 @@ convert_case = "0.4"
 log = "0.4"
 env_logger = "0.9"
 handlebars = "4.1"
-google-cloud-spanner = "0.14.0"
+google-cloud-spanner = "0.16.0"
 anyhow = "1.0"
 serde = "1.0"
 serde_json = "1.0"
@@ -22,4 +22,7 @@ tokio = { version="1.20", features=["rt-multi-thread"] }
 clap = "2.33"
 
 [dev-dependencies]
-chrono = "0.4"
+time = { version="0.3", features=["serde"]}
+google-cloud-spanner-derive = "0.1"
+google-cloud-googleapis= "0.7"
+google-cloud-gax= "0.12"

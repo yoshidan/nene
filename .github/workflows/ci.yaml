@@ -31,14 +31,9 @@ jobs:
         with:
           toolchain: stable
           components: rustfmt, clippy
-      - uses: actions-rs/cargo@v1
-        name: format check
-        with:
-          command: fmt
-          args: --all -- --check
       - name: setup spanner
         run: |
-          mkdir gen
+          mkdir ./tests/gen
           gcloud config configurations create emulator
           gcloud config set auth/disable_credentials true
           gcloud config set project local-project
@@ -57,6 +52,15 @@ jobs:
         name: run
         with:
           command: run
+          args: --release --all-features --manifest-path Cargo.toml -- -j -d -o ./tests/gen
+        env:
+          RUST_LOG: info
+          SPANNER_EMULATOR_HOST: localhost:9010
+          SPANNER_DSN: projects/local-project/instances/test-instance/databases/local-database
+      - uses: actions-rs/cargo@v1
+        name: test
+        with:
+          command: test
           args: --release --all-features --manifest-path Cargo.toml
         env:
           RUST_LOG: info

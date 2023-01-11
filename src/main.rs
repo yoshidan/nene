@@ -30,13 +30,21 @@ async fn main() -> anyhow::Result<()> {
                 .help("json support")
                 .takes_value(false),
         )
+        .arg(
+            Arg::with_name("default")
+                .short("d")
+                .long("default flag")
+                .help("default trait support")
+                .takes_value(false),
+        )
         .get_matches();
     let input = matches.value_of("input_dir");
     let output = matches.value_of("output_dir").unwrap_or("./gen");
     let json = matches.is_present("json");
+    let default = matches.is_present("default");
 
     let client = Client::new(database).await?;
-    let repository = TableRepository::new(client, json);
+    let repository = TableRepository::new(client, json, default);
     let generator = TableGenerator::new(repository);
 
     if input.is_some() {
