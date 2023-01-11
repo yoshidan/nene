@@ -31,11 +31,6 @@ jobs:
         with:
           toolchain: stable
           components: rustfmt, clippy
-      - uses: actions-rs/cargo@v1
-        name: format check
-        with:
-          command: fmt
-          args: --all -- --check src/*.rs
       - name: setup spanner
         run: |
           mkdir ./tests/gen
@@ -62,6 +57,11 @@ jobs:
           RUST_LOG: info
           SPANNER_EMULATOR_HOST: localhost:9010
           SPANNER_DSN: projects/local-project/instances/test-instance/databases/local-database
+      - uses: actions-rs/cargo@v1
+        name: format check
+        with:
+          command: fmt
+          args: --all -- --check src/*.rs
       - uses: actions-rs/cargo@v1
         name: test
         with:
