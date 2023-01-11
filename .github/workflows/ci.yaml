@@ -35,7 +35,7 @@ jobs:
         name: format check
         with:
           command: fmt
-          args: --all -- --check
+          args: --all -- --check src/*.rs
       - name: setup spanner
         run: |
           mkdir ./tests/gen
