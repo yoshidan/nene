@@ -38,7 +38,7 @@ jobs:
           args: --all -- --check
       - name: setup spanner
         run: |
-          mkdir gen
+          mkdir ./tests/gen
           gcloud config configurations create emulator
           gcloud config set auth/disable_credentials true
           gcloud config set project local-project
