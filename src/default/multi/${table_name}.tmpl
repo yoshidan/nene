@@ -21,9 +21,12 @@ pub const TABLE_NAME: &str = "{{{ table_name }}}";
 pub const COLUMN_{{{ upper_snake this.column_name }}}: &str = "{{{ this.column_name }}}";
 {{ /each }}
 
-#[derive(Debug,Clone,Default,Table{{#if (eq json true)}},serde::Serialize,serde::Deserialize{{/if}})]
+#[derive(Debug,Clone,Table{{#if (eq json true)}},serde::Serialize,serde::Deserialize{{/if}})]
 pub struct {{{ table_name }}} {
     {{ #each columns }}
+    {{ #if (eq @root.json true) ~}}{{ #if (eq this.spanner_type "TIMESTAMP") ~}}
+    #[serde(with = "time::serde::rfc3339")]
+    {{/if ~}}{{/if ~}}
     pub {{{ snake this.column_name }}}: {{ #if this.nullable }}Option<{{ /if }}{{{ rust_type this.spanner_type }}}{{ #if this.nullable }}>{{ /if }},
     {{ /each }}
 }

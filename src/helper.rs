@@ -13,9 +13,9 @@ fn rust_type_helper(spanner_type: String) -> String {
     let v = if spanner_type == "BOOL" {
         "bool"
     } else if spanner_type == "DATE" {
-        "chrono::NaiveDate"
+        "time::Date"
     } else if spanner_type == "TIMESTAMP" {
-        "chrono::DateTime<chrono::Utc>"
+        "time::OffsetDateTime"
     } else if spanner_type == "FLOAT64" {
         "f64"
     } else if spanner_type == "NUMERIC" {
