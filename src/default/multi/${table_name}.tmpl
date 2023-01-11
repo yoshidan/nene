@@ -31,6 +31,18 @@ pub struct {{{ table_name }}} {
     {{ /each }}
 }
 
+{{#if (eq default true) ~}}
+impl Default for {{{ table_name }}} {
+    fn default() -> Self {
+        Self {
+            {{ #each columns }}
+            {{{ snake this.column_name }}}: {{{ rust_default this.spanner_type }}},
+            {{ /each }}
+        }
+    }
+}
+{{/if ~}}
+
 impl {{{ table_name }}} {
     pub fn insert(&self) -> Mutation {
         insert_struct(TABLE_NAME, &self)

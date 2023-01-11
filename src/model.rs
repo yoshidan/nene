@@ -56,6 +56,7 @@ pub struct Table {
     pub primary_keys: Vec<PrimaryKey>,
     pub composite_key: bool,
     pub json: bool,
+    pub default: bool,
 }
 
 impl Table {
@@ -65,6 +66,7 @@ impl Table {
         columns: Vec<Column>,
         indexes: Vec<Index>,
         json: bool,
+        default: bool,
     ) -> Self {
         let mut primary_keys = vec![];
         for c in columns.iter() {
@@ -97,6 +99,7 @@ impl Table {
             composite_key: primary_keys.len() > 1,
             primary_keys: primary_keys_with_rest,
             json,
+            default,
         }
     }
 }

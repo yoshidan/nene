@@ -18,7 +18,7 @@ export SPANNER_DSN=projects/local-project/instances/test-instance/databases/loca
 # if you don't use emulator use GOOGLE_APPLICATION_CREDENTIALS instead of SPANNER_EMULATOR_HOST
 export SPANNER_EMULATOR_HOST=localhost:9010 
 mkdir ./gen
-nene -o ./gen -j
+nene -o ./gen -j -d
 ```
 
 * -i
@@ -32,6 +32,9 @@ nene -o ./gen -j
 
 * -j
   - add `serde::Serialize` and `serde::Deserialize` 
+
+* -d
+  - implements `Default` trait
 
 ### Generated file with default template
 
@@ -52,21 +55,82 @@ use google_cloud_spanner::statement::{Kinds, Statement, ToKind, ToStruct, Types}
 use google_cloud_spanner::transaction::Transaction;
 use google_cloud_spanner::transaction::CallOptions;
 use google_cloud_spanner::value::CommitTimestamp;
+use google_cloud_spanner_derive::Table;
 use std::convert::TryFrom;
 use crate::domain::model::read_by_statement;
 
 pub const TABLE_NAME: &str = "User";
 pub const COLUMN_USER_ID: &str = "UserId";
-pub const COLUMN_PREMIUM: &str = "Premium";
+pub const COLUMN_NOT_NULL_INT_64: &str = "NotNullINT64";
+pub const COLUMN_NULLABLE_INT_64: &str = "NullableINT64";
+pub const COLUMN_NOT_NULL_FLOAT_64: &str = "NotNullFloat64";
+pub const COLUMN_NULLABLE_FLOAT_64: &str = "NullableFloat64";
+pub const COLUMN_NOT_NULL_BOOL: &str = "NotNullBool";
+pub const COLUMN_NULLABLE_BOOL: &str = "NullableBool";
+pub const COLUMN_NOT_NULL_BYTE_ARRAY: &str = "NotNullByteArray";
+pub const COLUMN_NULLABLE_BYTE_ARRAY: &str = "NullableByteArray";
+pub const COLUMN_NOT_NULL_NUMERIC: &str = "NotNullNumeric";
+pub const COLUMN_NULLABLE_NUMERIC: &str = "NullableNumeric";
+pub const COLUMN_NOT_NULL_TIMESTAMP: &str = "NotNullTimestamp";
+pub const COLUMN_NULLABLE_TIMESTAMP: &str = "NullableTimestamp";
+pub const COLUMN_NOT_NULL_DATE: &str = "NotNullDate";
+pub const COLUMN_NULLABLE_DATE: &str = "NullableDate";
+pub const COLUMN_NOT_NULL_ARRAY: &str = "NotNullArray";
+pub const COLUMN_NULLABLE_ARRAY: &str = "NullableArray";
+pub const COLUMN_NULLABLE_STRING: &str = "NullableString";
 pub const COLUMN_UPDATED_AT: &str = "UpdatedAt";
 
-#[derive(Debug,Clone,Default,Table,serde::Serialize,serde::Deserialize)]
+#[derive(Debug,Clone,Table,serde::Serialize,serde::Deserialize)]
 pub struct User {
   pub user_id: String,
-  pub premium: bool,
-  pub updated_at: chrono::DateTime<chrono::Utc>,
+  pub not_null_int_64: i64,
+  pub nullable_int_64: Option<i64>,
+  pub not_null_float_64: f64,
+  pub nullable_float_64: Option<f64>,
+  pub not_null_bool: bool,
+  pub nullable_bool: Option<bool>,
+  pub not_null_byte_array: Vec<u8>,
+  pub nullable_byte_array: Option<Vec<u8>>,
+  pub not_null_numeric: google_cloud_spanner::value::SpannerNumeric,
+  pub nullable_numeric: Option<google_cloud_spanner::value::SpannerNumeric>,
+  #[serde(with = "time::serde::rfc3339")]
+  pub not_null_timestamp: time::OffsetDateTime,
+  #[serde(with = "time::serde::rfc3339")]
+  pub nullable_timestamp: Option<time::OffsetDateTime>,
+  pub not_null_date: time::Date,
+  pub nullable_date: Option<time::Date>,
+  pub not_null_array: Vec<i64>,
+  pub nullable_array: Option<Vec<i64>>,
+  pub nullable_string: Option<String>,
+  #[serde(with = "time::serde::rfc3339")]
+  pub updated_at: time::OffsetDateTime,
 }
 
+impl Default for User {
+  fn default() -> Self {
+    Self {
+      user_id: Default::default(),
+      not_null_int_64: Default::default(),
+      nullable_int_64: Default::default(),
+      not_null_float_64: Default::default(),
+      nullable_float_64: Default::default(),
+      not_null_bool: Default::default(),
+      nullable_bool: Default::default(),
+      not_null_byte_array: Default::default(),
+      nullable_byte_array: Default::default(),
+      not_null_numeric: Default::default(),
+      nullable_numeric: Default::default(),
+      not_null_timestamp: time::OffsetDateTime::now_utc(),
+      nullable_timestamp: time::OffsetDateTime::now_utc(),
+      not_null_date: time::OffsetDateTime::now_utc().date(),
+      nullable_date: time::OffsetDateTime::now_utc().date(),
+      not_null_array: Default::default(),
+      nullable_array: Default::default(),
+      nullable_string: Default::default(),
+      updated_at: time::OffsetDateTime::now_utc(),
+    }
+  }
+}
 impl User {
   pub fn insert(&self) -> Mutation {
     insert_struct(TABLE_NAME, &self)
@@ -85,15 +149,15 @@ impl User {
   }
 
   pub fn delete(&self) -> Mutation {
-    delete(TABLE_NAME, Key::key(&self.user_id))
+    delete(TABLE_NAME, Key::new(&self.user_id))
   }
 
   pub async fn find_by_pk(
-    tx: &mut Transaction, user_id: &String, options: Option<CallOptions>
+    tx: &mut Transaction, user_id: &str, options: Option<CallOptions>
   ) -> Result<Option<Self>, RunInTxError> {
     let mut stmt = Statement::new("SELECT * From User WHERE UserId = @UserId");
-    stmt.add_param(COLUMN_USER_ID, user_id);
-    let mut rows = Self::read_by_statement(tx, stmt, options).await?;
+    stmt.add_param(COLUMN_USER_ID, &user_id);
+    let mut rows = read_by_statement(tx, stmt, options).await?;
     if !rows.is_empty() {
       Ok(rows.pop())
     } else {
