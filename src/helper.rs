@@ -33,14 +33,15 @@ fn rust_type_helper(spanner_type: String) -> String {
     return v.to_string();
 }
 
-fn rust_default_helper(spanner_type: String) -> String {
-    if spanner_type == "DATE" {
-        "time::OffsetDateTime::now_utc().date()".to_string()
-    } else if spanner_type == "TIMESTAMP" {
-        "time::OffsetDateTime::now_utc()".to_string()
-    } else {
-        "Default::default()".to_string()
+fn rust_default_helper(nullable: bool, spanner_type: String) -> String {
+    if !nullable {
+        if spanner_type == "DATE" {
+            return "time::OffsetDateTime::now_utc().date()".to_string();
+        } else if spanner_type == "TIMESTAMP" {
+            return "time::OffsetDateTime::now_utc()".to_string();
+        }
     }
+    "Default::default()".to_string()
 }
 
 fn rust_arg_type_helper(v: String) -> String {
@@ -64,7 +65,7 @@ handlebars_helper!(rust_arg_type: |v: String | rust_arg_type_helper(v));
 handlebars_helper!(rust_caller_type: |v: String | rust_caller_type_helper(v));
 handlebars_helper!(snake: |v: String | snake_helper(v));
 handlebars_helper!(upper_snake: |v: String | upper_snake_helper(v));
-handlebars_helper!(rust_default: |v: String | rust_default_helper(v));
+handlebars_helper!(rust_default: |n: bool, v: String | rust_default_helper(n, v));
 
 pub fn register(handlebars: &mut Handlebars) {
     handlebars.register_helper("rust_type", Box::new(rust_type));

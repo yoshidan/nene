@@ -57,6 +57,15 @@ jobs:
         name: run
         with:
           command: run
+          args: --release --all-features --manifest-path Cargo.toml -- -j -d -o ./tests/gen
+        env:
+          RUST_LOG: info
+          SPANNER_EMULATOR_HOST: localhost:9010
+          SPANNER_DSN: projects/local-project/instances/test-instance/databases/local-database
+      - uses: actions-rs/cargo@v1
+        name: test
+        with:
+          command: test
           args: --release --all-features --manifest-path Cargo.toml
         env:
           RUST_LOG: info
