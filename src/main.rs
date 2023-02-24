@@ -1,5 +1,6 @@
 use clap::{App, Arg};
-use google_cloud_spanner::client::Client;
+use google_cloud_default::WithAuthExt;
+use google_cloud_spanner::client::{Client, ClientConfig};
 use nene::generator::TableGenerator;
 use nene::repository::TableRepository;
 
@@ -43,7 +44,8 @@ async fn main() -> anyhow::Result<()> {
     let json = matches.is_present("json");
     let default = matches.is_present("default");
 
-    let client = Client::new(database).await?;
+    let config = ClientConfig::default().with_auth().await?;
+    let client = Client::new(database, config).await?;
     let repository = TableRepository::new(client, json, default);
     let generator = TableGenerator::new(repository);
 

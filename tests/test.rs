@@ -11,7 +11,8 @@ async fn test_generated() {
     };
 
     let database = env::var("SPANNER_DSN").unwrap();
-    let client = google_cloud_spanner::client::Client::new(database)
+    let config = google_cloud_spanner::client::ClientConfig::default();
+    let client = google_cloud_spanner::client::Client::new(database, config)
         .await
         .unwrap();
     let _ = client.apply(vec![v.insert_or_update()]).await.unwrap();

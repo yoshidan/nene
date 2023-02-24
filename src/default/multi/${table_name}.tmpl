@@ -63,7 +63,6 @@ impl {{{ table_name }}} {
     pub fn delete(&self) -> Mutation {
         delete(TABLE_NAME, {{ #if composite_key }}Key::composite(&[{{ #each primary_keys }}{{#if (gt @index 0)}}, {{/if}}&self.{{{ snake this.column.column_name }}}{{ /each }}]){{ else }}Key::new({{ #each primary_keys }}&self.{{{ snake this.column.column_name }}}{{ /each }}){{ /if }})
     }
-    {{ #each primary_keys }}
 
     async fn read_by_statement(tx: &mut Transaction, stmt: Statement, options: Option<CallOptions>) -> Result<Vec<Self>, Error> {
         let mut reader = tx.query(stmt).await?;
@@ -77,6 +76,7 @@ impl {{{ table_name }}} {
         Ok(result)
     }
 
+    {{ #each primary_keys }}
     {{ #if last }}
     pub async fn find_by_pk(
        tx: &mut Transaction{{ #each this.uppers }}, {{{ snake this.column_name }}}: {{{ rust_arg_type (rust_type this.spanner_type) }}}{{/each}}, options: Option<CallOptions>
