@@ -2,15 +2,6 @@
 //! `nene` is a command-line tool to generate Rust code for Google Cloud Spanner.  
 //! `nene` uses database schema to generate code by using Information Schema. `nene` runs SQL queries against tables in INFORMATION_SCHEMA to fetch metadata for a database, and applies the metadata to Go templates to generate code/models to acccess Cloud Spanner.
 //!
-//! [![crates.io](https://img.shields.io/crates/v/nene.svg)](https://crates.io/crates/nene)
-//! ![CI](https://github.com/yoshidan/nene/workflows/CI/badge.svg?branch=main)
-//!
-//! ## Installation
-//!
-//! ```
-//! cargo install nene
-//! ```
-//!
 //! ## Usage
 //! ```bash
 //! export RUST_LOG=info
