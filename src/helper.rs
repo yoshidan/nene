@@ -5,7 +5,7 @@ use handlebars::Handlebars;
 fn rust_type_helper(spanner_type: String) -> String {
     let should_wrap_array = spanner_type.starts_with("ARRAY");
     let spanner_type = if should_wrap_array {
-        spanner_type.replace("ARRAY<", "").replace(">", "")
+        spanner_type.replace("ARRAY<", "").replace('>', "")
     } else {
         spanner_type
     };
@@ -19,7 +19,7 @@ fn rust_type_helper(spanner_type: String) -> String {
     } else if spanner_type == "FLOAT64" {
         "f64"
     } else if spanner_type == "NUMERIC" {
-        "google_cloud_spanner::value::SpannerNumeric"
+        "google_cloud_spanner::bigdecimal::BigDecimal"
     } else if spanner_type.starts_with("BYTES") {
         "Vec<u8>"
     } else if spanner_type == "INT64" {
@@ -28,9 +28,9 @@ fn rust_type_helper(spanner_type: String) -> String {
         "String"
     };
     if should_wrap_array {
-        return format!("Vec<{}>", v.to_string());
+        return format!("Vec<{}>", v);
     }
-    return v.to_string();
+    v.to_string()
 }
 
 fn rust_default_helper(nullable: bool, spanner_type: String) -> String {
@@ -45,19 +45,19 @@ fn rust_default_helper(nullable: bool, spanner_type: String) -> String {
 }
 
 fn rust_arg_type_helper(v: String) -> String {
-    return format!("&{}", v.replace("String", "str"));
+    format!("&{}", v.replace("String", "str"))
 }
 
 fn rust_caller_type_helper(v: String) -> String {
-    return v.replace("<", "::<");
+    v.replace('<', "::<")
 }
 
 fn snake_helper(v: String) -> String {
-    return v.to_case(Case::Snake);
+    v.to_case(Case::Snake)
 }
 
 fn upper_snake_helper(v: String) -> String {
-    return v.to_case(Case::UpperSnake);
+    v.to_case(Case::UpperSnake)
 }
 
 handlebars_helper!(rust_type: |v: String | rust_type_helper(v));

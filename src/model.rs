@@ -84,7 +84,7 @@ impl Table {
                 }
             }
             primary_keys_with_rest.push(PrimaryKey {
-                uppers: uppers,
+                uppers,
                 column: c.clone(),
                 last: false,
             })

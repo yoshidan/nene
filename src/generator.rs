@@ -68,7 +68,7 @@ impl TableGenerator {
                 &tables,
                 &template_string,
                 &file_name,
-                &output_dir,
+                output_dir,
             )
             .await?;
         }
@@ -82,7 +82,7 @@ impl TableGenerator {
                 &tables,
                 &template_string,
                 &file_name,
-                &output_dir,
+                output_dir,
             )
             .await?;
         }
@@ -114,7 +114,7 @@ impl TableGenerator {
         output_dir: &str,
     ) -> anyhow::Result<()> {
         for table in tables.iter() {
-            let rendered = handlebars.render_template::<Table>(&template_string, &table)?;
+            let rendered = handlebars.render_template::<Table>(template_string, table)?;
             let file_path = format!(
                 "{}/{}.rs",
                 output_dir,

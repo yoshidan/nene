@@ -1,6 +1,6 @@
 [package]
 name = "nene"
-version = "0.5.0"
+version = "0.6.0"
 authors = ["yoshidan <naohiro.y@gmail.com>"]
 edition = "2021"
 repository = "https://github.com/yoshidan/nene"
@@ -10,20 +10,19 @@ readme = "README.md"
 description = "Google Cloud Spanner ORM generator."
 
 [dependencies]
-convert_case = "0.4"
+convert_case = "0.6"
 log = "0.4"
-env_logger = "0.9"
+env_logger = "0.10"
 handlebars = "4.1"
-google-cloud-spanner = "0.17.0"
-google-cloud-default = { version="0.1.0", features=["spanner"] }
+google-cloud-spanner = "0.22"
 anyhow = "1.0"
 serde = "1.0"
 serde_json = "1.0"
 tokio = { version="1.20", features=["rt-multi-thread"] }
-clap = "2.33"
+clap = "2.34"
 
 [dev-dependencies]
 time = { version="0.3", features=["serde"]}
 google-cloud-spanner-derive = "0.1"
-google-cloud-googleapis= "0.7"
-google-cloud-gax= "0.13"
+google-cloud-googleapis= "0.10"
+google-cloud-gax= "0.15"

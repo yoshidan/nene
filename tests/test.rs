@@ -17,7 +17,7 @@ async fn test_generated() {
         .unwrap();
     let _ = client.apply(vec![v.insert_or_update()]).await.unwrap();
     let mut tx = client.single().await.unwrap();
-    let user = user::User::find_by_pk(&mut tx, &"test_user", None)
+    let user = user::User::find_by_pk(&mut tx, "test_user", None)
         .await
         .unwrap();
     assert!(user.is_some());

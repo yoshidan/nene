@@ -1,5 +1,4 @@
 use clap::{App, Arg};
-use google_cloud_default::WithAuthExt;
 use google_cloud_spanner::client::{Client, ClientConfig};
 use nene::generator::TableGenerator;
 use nene::repository::TableRepository;
