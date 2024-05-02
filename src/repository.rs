@@ -1,6 +1,5 @@
 use crate::model::{Column, Index, Table};
 use google_cloud_spanner::client::Client;
-use google_cloud_spanner::reader::AsyncIterator;
 use google_cloud_spanner::statement::Statement;
 
 pub struct TableRepository {
